@@ -3,7 +3,9 @@
 in vec3 color_frag;
 in vec2 texcoord;
 
+uniform sampler2D tex;
+
 void main() {
-    gl_FragColor = vec4(color_frag, 1.0);
-    // gl_FragColor = vec4(texcoord.x, texcoord.y, 0.0, 1.0); // Texture instead
+    //gl_FragColor = vec4(color_frag, 1.0);
+    gl_FragColor = texture(tex, texcoord);
 }
