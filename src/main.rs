@@ -5,7 +5,8 @@ use rgb::*;
 struct Vertex {
     pos: [f32; 2],
     color: [f32; 4],
-    texcoord: [f32; 2]
+    texcoord: [f32; 2],
+    tex_index: f32,
 }
 
 struct Stage {
@@ -19,21 +20,23 @@ impl Stage {
         let mut ctx: Box<dyn RenderingBackend> = window::new_rendering_backend();
 
         let my_texture = lodepng::decode32(include_bytes!("texture.png")).unwrap();
-        let tex = ctx.new_texture_from_rgba8(my_texture.width as u16, my_texture.height as u16, my_texture.buffer.as_bytes());
+        let my_texture2 = lodepng::decode32(include_bytes!("texture_2.png")).unwrap();
+        let tex  = ctx.new_texture_from_rgba8(my_texture.width as u16, my_texture.height as u16, my_texture.buffer.as_bytes());
+        let tex2 = ctx.new_texture_from_rgba8(my_texture2.width as u16, my_texture2.height as u16, my_texture2.buffer.as_bytes());
 
         #[rustfmt::skip]
         let vertices = [
             // First element
-            Vertex { pos : [ -0.2, -0.2 ], color: [1., 0., 0., 1.], texcoord: [0.0, 0.0] },
-            Vertex { pos : [  0.2, -0.2 ], color: [1., 0., 0., 1.], texcoord: [1.0, 0.0] },
-            Vertex { pos : [  0.2,  0.2 ], color: [1., 0., 0., 1.], texcoord: [1.0, 1.0] },
-            Vertex { pos : [  -0.2, 0.2 ], color: [1., 0., 0., 1.], texcoord: [0.0, 1.0] },
+            Vertex { pos : [ -0.2, -0.2 ], color: [1., 0., 0., 1.], texcoord: [0.0, 0.0], tex_index: 0.0},
+            Vertex { pos : [  0.2, -0.2 ], color: [1., 0., 0., 1.], texcoord: [1.0, 0.0], tex_index: 0.0},
+            Vertex { pos : [  0.2,  0.2 ], color: [1., 0., 0., 1.], texcoord: [1.0, 1.0], tex_index: 0.0},
+            Vertex { pos : [  -0.2, 0.2 ], color: [1., 0., 0., 1.], texcoord: [0.0, 1.0], tex_index: 0.0},
 
             // Second element
-            Vertex { pos : [ -0.7, -0.7 ], color: [0., 1., 0., 1.], texcoord: [0.0, 0.0] },
-            Vertex { pos : [ -0.3, -0.7 ], color: [0., 1., 0., 1.], texcoord: [1.0, 0.0] },
-            Vertex { pos : [ -0.3, -0.3 ], color: [0., 1., 0., 1.], texcoord: [1.0, 1.0] },
-            Vertex { pos : [ -0.7, -0.3 ], color: [0., 1., 0., 1.], texcoord: [0.0, 1.0] },
+            Vertex { pos : [ -0.7, -0.7 ], color: [0., 1., 0., 1.], texcoord: [0.0, 0.0], tex_index: 1.0 },
+            Vertex { pos : [ -0.3, -0.7 ], color: [0., 1., 0., 1.], texcoord: [1.0, 0.0], tex_index: 1.0 },
+            Vertex { pos : [ -0.3, -0.3 ], color: [0., 1., 0., 1.], texcoord: [1.0, 1.0], tex_index: 1.0 },
+            Vertex { pos : [ -0.7, -0.3 ], color: [0., 1., 0., 1.], texcoord: [0.0, 1.0], tex_index: 1.0 },
         ];
         let vertex_buffer = ctx.new_buffer(
             BufferType::VertexBuffer,
@@ -54,7 +57,7 @@ impl Stage {
         let bindings = Bindings {
             vertex_buffers: vec![vertex_buffer],
             index_buffer: index_buffer,
-            images: vec![tex],
+            images: vec![tex, tex2],
         };
 
         let shader = ctx
@@ -73,6 +76,7 @@ impl Stage {
                 VertexAttribute::new("pos", VertexFormat::Float2),
                 VertexAttribute::new("col", VertexFormat::Float4),
                 VertexAttribute::new("uv", VertexFormat::Float2),
+                VertexAttribute::new("tex_index", VertexFormat::Float1),
             ],
             shader,
             PipelineParams::default(),
