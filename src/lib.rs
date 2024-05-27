@@ -6,15 +6,23 @@ use draw::*;
 
 pub mod shapes;
 
+struct Texture {
+    pub w: u16,
+    pub h: u16,
+    pub bitmap: Vec<u8>
+}
+
+
 pub struct Scene {
     last_index: u16,
     vertices: Vec<Vertex>,
-    indices: Vec<u16>
+    indices: Vec<u16>,
+    textures: Vec<Texture>,
 }
 
 impl Scene {
     pub fn new() -> Scene {
-        Scene { last_index: 0, vertices: vec![], indices: vec![] }
+        Scene { last_index: 0, vertices: vec![], indices: vec![], textures: vec![] }
     }
 
     pub fn get_len_index(&self) -> i32 {
@@ -26,6 +34,10 @@ impl Scene {
         draw_data.0.iter().for_each(|vertex| self.vertices.push(*vertex));
         draw_data.1.iter().for_each(|index|  self.indices.push(*index + self.last_index));
         self.last_index += draw_data.0.len() as u16;
+    }
+
+    pub fn texture(&mut self, texture: Vec<u8>, w: u16, h: u16) {
+        self.textures.push(Texture { bitmap: texture, w, h })
     }
 }
 
@@ -39,12 +51,11 @@ struct Stage {
 impl Stage {
     pub fn new(scene: Scene) -> Stage {
         let mut ctx: Box<dyn RenderingBackend> = window::new_rendering_backend();
-
-        let my_texture = lodepng::decode32(include_bytes!("texture.png")).unwrap();
-        let my_texture2 = lodepng::decode32(include_bytes!("texture_2.png")).unwrap();
-        let tex  = ctx.new_texture_from_rgba8(my_texture.width as u16, my_texture.height as u16, my_texture.buffer.as_bytes());
-        let tex2 = ctx.new_texture_from_rgba8(my_texture2.width as u16, my_texture2.height as u16, my_texture2.buffer.as_bytes());
-
+        
+        let mut bitmaps = vec![];
+        scene.textures.iter().for_each(|tex| {
+            bitmaps.push(ctx.new_texture_from_rgba8(tex.w, tex.h, &tex.bitmap))
+        });
 
 
         let index = scene.get_len_index();
@@ -68,7 +79,7 @@ impl Stage {
         let bindings = Bindings {
             vertex_buffers: vec![vertex_buffer],
             index_buffer: index_buffer,
-            images: vec![tex, tex2],
+            images: bitmaps,
         };
 
         let shader = ctx
