@@ -1,38 +1,10 @@
 use miniquad::*;
 use rgb::*;
 
-#[repr(C)]
-#[derive(Debug)]
-struct Vertex {
-    pos: [f32; 2],
-    color: [f32; 4],
-    texcoord: [f32; 2],
-    tex_index: i32,
-}
+mod draw;
+use draw::*;
 
-fn col(r: f32, g: f32, b: f32, a: f32) -> RGBA<f32> {
-    return RGBA {
-        r, g, b, a
-    };
-}
-
-#[repr(C)]
-pub enum Fill {
-    Solid(RGBA<f32>),
-    Linear {
-        col: RGBA<f32>,
-        endcol: RGBA<f32>,
-        start: [f32; 2],
-        end: [f32; 2],
-    },
-    Radial {
-        col: RGBA<f32>,
-        endcol: RGBA<f32>,
-        start: [f32; 2],
-        end: [f32; 2],
-    },
-    Texture(u32),
-}
+mod shapes;
 
 pub struct Scene {
     last_index: u16,
@@ -49,28 +21,11 @@ impl Scene {
         return self.indices.len() as i32;
     }
 
-    pub fn rect(&mut self, x: f32, y: f32, w: f32, h: f32, fill: Fill) {
-        let mut base_col: RGBA<f32> = [0.0, 0.0, 0.0, 1.0].into();
-        let text_id = match fill {
-            Fill::Solid(col)  => { base_col = col; -1 },
-            Fill::Linear {col, ..} => { base_col = col; -2 },
-            Fill::Radial {col, ..} => { base_col = col; -3 },
-            Fill::Texture(id) => id as i32,
-        };
-
-        self.vertices.push(Vertex { pos: [x,     y],     color: base_col.into(), texcoord: [0.0, 1.0], tex_index: text_id }); // Always pos is the top left vertex
-        self.vertices.push(Vertex { pos: [x,     y - h], color: base_col.into(), texcoord: [0.0, 0.0], tex_index: text_id });
-        self.vertices.push(Vertex { pos: [x + w, y - h], color: base_col.into(), texcoord: [1.0, 0.0], tex_index: text_id });
-        self.vertices.push(Vertex { pos: [x + w, y],     color: base_col.into(), texcoord: [1.0, 1.0], tex_index: text_id });
-
-        let indices = [
-            0, 1, 2, 2, 3, 0,
-        ].into_iter()
-            .map(|i| i + self.last_index)
-            .for_each(|i| {
-                self.indices.push(i);
-            });
-        self.last_index += 4;
+    pub fn compose(&mut self, item: Box<dyn Draw>) {
+        let draw_data = item.draw();
+        draw_data.0.iter().for_each(|vertex| self.vertices.push(*vertex));
+        draw_data.1.iter().for_each(|index|  self.indices.push(*index + self.last_index));
+        self.last_index += draw_data.0.len() as u16;
     }
 }
 
@@ -90,27 +45,20 @@ impl Stage {
         let tex  = ctx.new_texture_from_rgba8(my_texture.width as u16, my_texture.height as u16, my_texture.buffer.as_bytes());
         let tex2 = ctx.new_texture_from_rgba8(my_texture2.width as u16, my_texture2.height as u16, my_texture2.buffer.as_bytes());
 
-        #[rustfmt::skip]
-        //let mut vertices = Vec::from([
-        //    // First element
-        //    Vertex { pos : [ -0.2, -0.2 ], color: [1., 0., 0., 1.], texcoord: [0.0, 0.0], tex_index: 0 },
-        //    Vertex { pos : [  0.2, -0.2 ], color: [1., 0., 0., 1.], texcoord: [1.0, 0.0], tex_index: 0 },
-        //    Vertex { pos : [  0.2,  0.2 ], color: [1., 0., 0., 1.], texcoord: [1.0, 1.0], tex_index: 0 },
-        //    Vertex { pos : [  -0.2, 0.2 ], color: [1., 0., 0., 1.], texcoord: [0.0, 1.0], tex_index: 0 },
 
-        //    // Second element
-        //    Vertex { pos : [ -0.7, -0.7 ], color: [0., 1., 0., 1.], texcoord: [0.0, 0.0], tex_index: 1 },
-        //    Vertex { pos : [ -0.3, -0.7 ], color: [0., 1., 0., 1.], texcoord: [1.0, 0.0], tex_index: 1 },
-        //    Vertex { pos : [ -0.3, -0.3 ], color: [0., 1., 0., 1.], texcoord: [1.0, 1.0], tex_index: 1 },
-        //    Vertex { pos : [ -0.7, -0.3 ], color: [0., 1., 0., 1.], texcoord: [0.0, 1.0], tex_index: 1 },
-        //]);
+        let myrect1 = Box::new(shapes::quad::Quad {x: -0.2, y: -0.2, w: 0.4, h: 0.4, fill: Fill::Solid(col(1., 0., 0., 1.)) });
+        let myrect2 = Box::new(shapes::quad::Quad {x: -0.7, y: -0.7, w: 0.5, h: 0.2, fill: Fill::Texture(0) });
+        let myrect3 = Box::new(shapes::quad::Quad {x: 0.,   y: 0.,   w: 0.2, h: 0.2, fill: Fill::Solid(col(1., 1., 0., 1.)) });
 
         let mut my_scene = Scene::new();
-        my_scene.rect(-0.2, -0.2, 0.4, 0.4, Fill::Solid(col(1., 0., 0., 1.)));
-        my_scene.rect(-0.7, -0.7, 0.5, 0.2, Fill::Texture(0));
-        my_scene.rect(0., 0., 0.2, 0.2, Fill::Solid(col(1., 1., 0., 1.)));
+        my_scene.compose(myrect1);
+        my_scene.compose(myrect2);
+        my_scene.compose(myrect3);
+
 
         let index = my_scene.get_len_index();
+
+        dbg!(&my_scene.indices);
 
         let vertices = my_scene.vertices;
         let indices = my_scene.indices;
@@ -122,10 +70,6 @@ impl Stage {
             BufferSource::slice(&vertices),
         );
 
-        //let indices: [u16; 12] = [
-        //    0, 1, 2, 2, 3, 0,
-        //    4, 5, 6, 6, 7, 4 
-        //];
         let index_buffer = ctx.new_buffer(
             BufferType::IndexBuffer,
             BufferUsage::Immutable,

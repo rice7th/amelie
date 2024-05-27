@@ -1,5 +1,3 @@
-mod lib;
-
 /* General API overview of Amelie
 
 Amelie needs to be:
@@ -115,5 +113,5 @@ fn px(pxl: int) -> float {
 
 
 fn main() {
-    lib::init("Example", 400, 600, true, None);
+    amelie::init("Example", 400, 600, true, None);
 }
