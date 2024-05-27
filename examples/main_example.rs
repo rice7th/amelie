@@ -1,3 +1,6 @@
+use amelie::draw::*;
+use amelie::shapes::*;
+
 /* General API overview of Amelie
 
 Amelie needs to be:
@@ -113,5 +116,15 @@ fn px(pxl: int) -> float {
 
 
 fn main() {
-    amelie::init("Example", 400, 600, true, None);
+
+    let myrect1 = Box::new(quad::Quad {x: -0.2, y: -0.2, w: 0.4, h: 0.4, fill: Fill::Solid(col(1., 0., 0., 1.)) });
+    let myrect2 = Box::new(quad::Quad {x: -0.7, y: -0.7, w: 0.5, h: 0.2, fill: Fill::Texture(0) });
+    let myrect3 = Box::new(quad::Quad {x: 0.,   y: 0.,   w: 0.2, h: 0.2, fill: Fill::Solid(col(1., 1., 0., 1.)) });
+
+    let mut my_scene = amelie::Scene::new();
+    my_scene.compose(myrect1);
+    my_scene.compose(myrect2);
+    my_scene.compose(myrect3);
+
+    amelie::init("Example", 400, 600, true, None, my_scene);
 }

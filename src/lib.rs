@@ -1,10 +1,10 @@
 use miniquad::*;
 use rgb::*;
 
-mod draw;
+pub mod draw;
 use draw::*;
 
-mod shapes;
+pub mod shapes;
 
 pub struct Scene {
     last_index: u16,
@@ -37,7 +37,7 @@ struct Stage {
 }
 
 impl Stage {
-    pub fn new() -> Stage {
+    pub fn new(scene: Scene) -> Stage {
         let mut ctx: Box<dyn RenderingBackend> = window::new_rendering_backend();
 
         let my_texture = lodepng::decode32(include_bytes!("texture.png")).unwrap();
@@ -46,22 +46,11 @@ impl Stage {
         let tex2 = ctx.new_texture_from_rgba8(my_texture2.width as u16, my_texture2.height as u16, my_texture2.buffer.as_bytes());
 
 
-        let myrect1 = Box::new(shapes::quad::Quad {x: -0.2, y: -0.2, w: 0.4, h: 0.4, fill: Fill::Solid(col(1., 0., 0., 1.)) });
-        let myrect2 = Box::new(shapes::quad::Quad {x: -0.7, y: -0.7, w: 0.5, h: 0.2, fill: Fill::Texture(0) });
-        let myrect3 = Box::new(shapes::quad::Quad {x: 0.,   y: 0.,   w: 0.2, h: 0.2, fill: Fill::Solid(col(1., 1., 0., 1.)) });
 
-        let mut my_scene = Scene::new();
-        my_scene.compose(myrect1);
-        my_scene.compose(myrect2);
-        my_scene.compose(myrect3);
+        let index = scene.get_len_index();
 
-
-        let index = my_scene.get_len_index();
-
-        dbg!(&my_scene.indices);
-
-        let vertices = my_scene.vertices;
-        let indices = my_scene.indices;
+        let vertices = scene.vertices;
+        let indices = scene.indices;
 
         //vertices.push(value);
         let vertex_buffer = ctx.new_buffer(
@@ -149,7 +138,7 @@ pub struct Config {
     sample_count: i32,
 }
 
-pub fn init(title: &str, height: i32, width: i32, resizable: bool, other_config: Option<Config>) {
+pub fn init(title: &str, height: i32, width: i32, resizable: bool, other_config: Option<Config>, scene: Scene) {
     let mut conf = conf::Conf::default();
     conf.window_title = title.to_string();
     conf.window_height = height;
@@ -169,5 +158,5 @@ pub fn init(title: &str, height: i32, width: i32, resizable: bool, other_config:
     }
     conf.platform.apple_gfx_api = conf::AppleGfxApi::OpenGl;
 
-    miniquad::start(conf, move || Box::new(Stage::new()));
+    miniquad::start(conf, move || Box::new(Stage::new(scene)));
 }
