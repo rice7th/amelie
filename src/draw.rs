@@ -13,6 +13,7 @@ pub struct Vertex {
     pub color: [f32; 4],
     pub texcoord: [f32; 2],
     pub tex_index: i32,
+    pub rounding: [f32; 4],
 }
 
 pub fn col(r: f32, g: f32, b: f32, a: f32) -> RGBA<f32> {

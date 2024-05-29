@@ -51,6 +51,8 @@ struct Stage {
 impl Stage {
     pub fn new(scene: Scene) -> Stage {
         let mut ctx: Box<dyn RenderingBackend> = window::new_rendering_backend();
+
+        
         
         let mut bitmaps = vec![];
         scene.textures.iter().for_each(|tex| {
@@ -99,9 +101,17 @@ impl Stage {
                 VertexAttribute::new("col", VertexFormat::Float4),
                 VertexAttribute::new("uv", VertexFormat::Float2),
                 VertexAttribute::new("tex_index", VertexFormat::Float1),
+                VertexAttribute::new("rounding", VertexFormat::Float4),
             ],
             shader,
-            PipelineParams::default(),
+            PipelineParams {
+                color_blend: Some(BlendState::new(
+                        Equation::Add,
+                        BlendFactor::Value(BlendValue::SourceAlpha),
+                        BlendFactor::OneMinusValue(BlendValue::SourceAlpha))
+                    ),
+                    ..Default::default()
+                },
         );
 
         Stage {
@@ -117,10 +127,13 @@ impl EventHandler for Stage {
     fn update(&mut self) {}
 
     fn draw(&mut self) {
-        self.ctx.begin_default_pass(Default::default());
+        self.ctx.begin_default_pass(PassAction::clear_color(1.0, 1.0, 0.5, 1.0));
 
         self.ctx.apply_pipeline(&self.pipeline);
         self.ctx.apply_bindings(&self.bindings);
+        self.ctx.apply_uniforms(UniformsSource::table(&shader::Uniforms {
+            res: window::screen_size().into(),
+        }));
         self.ctx.draw(0, self.index as i32, 1);
         self.ctx.end_render_pass();
 
@@ -138,8 +151,13 @@ mod shader {
     pub fn meta() -> ShaderMeta {
         ShaderMeta {
             images: vec![String::from("tex"), String::from("tex")],
-            uniforms: UniformBlockLayout { uniforms: vec![] },
+            uniforms: UniformBlockLayout { uniforms: vec![UniformDesc::new("res", UniformType::Float2)] },
         }
+    }
+
+    #[repr(C)]
+    pub struct Uniforms {
+        pub res: [f32; 2],
     }
 }
 

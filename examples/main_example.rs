@@ -128,9 +128,9 @@ fn main() {
     my_scene.texture(my_texture.buffer.as_bytes().to_vec(), my_texture.width   as u16, my_texture.height  as u16);
     my_scene.texture(my_texture2.buffer.as_bytes().to_vec(), my_texture2.width as u16, my_texture2.height as u16);
 
-    let myrect1 = Box::new(quad::Quad {x: -0.2, y: -0.2, w: 0.4, h: 0.4, fill: Fill::Solid(col(1., 0., 0., 1.)) });
-    let myrect2 = Box::new(quad::Quad {x: -0.7, y: -0.7, w: 0.5, h: 0.2, fill: Fill::Texture(0) });
-    let myrect3 = Box::new(quad::Quad {x: 0.,   y: 0.,   w: 0.2, h: 0.2, fill: Fill::Solid(col(1., 1., 0., 1.)) });
+    let myrect1 = Box::new(quad::Quad {x: -1.0, y: 1.0, w: 1.4, h: 1.4, fill: Fill::Solid(col(1., 0., 0., 1.)), rounding: [0.40, 0.40, 0.40, 0.40] });
+    let myrect2 = Box::new(quad::Quad {x: -0.7, y: -0.7, w: 0.5, h: 0.2, fill: Fill::Texture(0), rounding: [0.2, 0.6, 0.7, 0.2] });
+    let myrect3 = Box::new(quad::Quad {x: 0.,   y: 0.,   w: 0.2, h: 0.2, fill: Fill::Solid(col(1., 1., 0., 1.)), rounding: [0.6, 0.0, 0.0, 0.6] });
 
     
     my_scene.compose(myrect1);

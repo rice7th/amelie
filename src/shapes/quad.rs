@@ -7,6 +7,7 @@ pub struct Quad {
     pub w: f32,
     pub h: f32,
     pub fill: Fill,
+    pub rounding: [f32; 4],
 }
 
 impl Draw for Quad {
@@ -21,10 +22,10 @@ impl Draw for Quad {
             Fill::Texture(id) => id as i32,
         };
 
-        vertices.push(Vertex { pos: [self.x,          self.y],     color: base_col.into(), texcoord: [0.0, 1.0], tex_index: text_id }); // Always pos is the top left vertex
-        vertices.push(Vertex { pos: [self.x,          self.y - self.h], color: base_col.into(), texcoord: [0.0, 0.0], tex_index: text_id });
-        vertices.push(Vertex { pos: [self.x + self.w, self.y - self.h], color: base_col.into(), texcoord: [1.0, 0.0], tex_index: text_id });
-        vertices.push(Vertex { pos: [self.x + self.w, self.y],     color: base_col.into(), texcoord: [1.0, 1.0], tex_index: text_id });
+        vertices.push(Vertex { pos: [self.x,          self.y],          color: base_col.into(), texcoord: [0.0, 1.0], tex_index: text_id, rounding: self.rounding }); // Always pos is the top left vertex
+        vertices.push(Vertex { pos: [self.x,          self.y - self.h], color: base_col.into(), texcoord: [0.0, 0.0], tex_index: text_id, rounding: self.rounding });
+        vertices.push(Vertex { pos: [self.x + self.w, self.y - self.h], color: base_col.into(), texcoord: [1.0, 0.0], tex_index: text_id, rounding: self.rounding });
+        vertices.push(Vertex { pos: [self.x + self.w, self.y],          color: base_col.into(), texcoord: [1.0, 1.0], tex_index: text_id, rounding: self.rounding });
 
         return (vertices, vec![0, 1, 2, 2, 3, 0])
     }
