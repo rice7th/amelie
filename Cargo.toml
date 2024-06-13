@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 lodepng = "3.10.1"
-miniquad = "0.4.0"
+miniquad = "*"
 rgb = "0.8.37"

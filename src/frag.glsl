@@ -24,9 +24,8 @@ float sdf(vec2 p) {
 
 
 void main() {
-    vec4 display_color;
     vec4 fill;
-    
+    vec4 display_color;
 
     vec2 size = vec2(1)/2;
 
@@ -37,17 +36,16 @@ void main() {
 
     display_color = fill;
 
-    vec2 location = vec2(frag_pos.x, -frag_pos.y);
-    location.y += res.y - size.y;
     float distance = rounded_rect_sdf(texcoord.xy - vec2(0.5), size, frag_rounding);
-    float smooth_alpha = 2.0 - smoothstep(0.0, 4.0, -distance); // Smooth alpha for antialiasing
-    display_color.a = smooth_alpha;
+    float smooth_alpha = 1.0 - smoothstep(0.0, 2.0, sqrt(res.y*res.x)/4*distance); // Smooth alpha for antialiasing
+    display_color.a = display_color.a * smooth_alpha;
 
-    O_COLOR = vec4(0.0);
+    //O_COLOR = vec4(0.0);
 
     if (distance < 0) {
         //O_COLOR = mix(vec4(0.0f, 0.0f, 0.0f, 1.0f), display_color, smooth_alpha);
-        O_COLOR = vec4(display_color.x, display_color.y, display_color.z, smooth_alpha);
+        O_COLOR = vec4(display_color.x, display_color.y, display_color.z, display_color.a);
     }
+    //O_COLOR = vec4(1.0, 1.0, 1.0, display_color.a);
 }
 

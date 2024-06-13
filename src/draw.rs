@@ -39,3 +39,17 @@ pub enum Fill {
     },
     Texture(u32),
 }
+
+#[repr(C)]
+pub struct Stroke {
+    kind: Fill,
+    width: i32,
+    position: StrokePosition,
+}
+
+#[repr(C)]
+pub enum StrokePosition {
+    Inside,
+    Center,
+    Outside,
+}

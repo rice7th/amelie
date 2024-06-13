@@ -4,6 +4,9 @@ use rgb::*;
 pub mod draw;
 use draw::*;
 
+pub mod widget;
+use widget::*;
+
 pub mod shapes;
 
 struct Texture {
@@ -108,10 +111,11 @@ impl Stage {
                 color_blend: Some(BlendState::new(
                         Equation::Add,
                         BlendFactor::Value(BlendValue::SourceAlpha),
-                        BlendFactor::OneMinusValue(BlendValue::SourceAlpha))
-                    ),
-                    ..Default::default()
-                },
+                        BlendFactor::OneMinusValue(BlendValue::SourceAlpha)
+                    )
+                ),
+                ..Default::default()
+            },
         );
 
         Stage {
@@ -126,8 +130,12 @@ impl Stage {
 impl EventHandler for Stage {
     fn update(&mut self) {}
 
+    fn mouse_motion_event(&mut self, x: f32, y: f32) {
+        dbg!([x, y]);
+    }
+
     fn draw(&mut self) {
-        self.ctx.begin_default_pass(PassAction::clear_color(1.0, 1.0, 0.5, 1.0));
+        self.ctx.begin_default_pass(PassAction::clear_color(0.0, 0.0, 0.0, 1.0));
 
         self.ctx.apply_pipeline(&self.pipeline);
         self.ctx.apply_bindings(&self.bindings);
